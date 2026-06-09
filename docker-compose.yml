@@ -1,0 +1,74 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# PolySignal docker-compose.yml
+#
+# Services included now (Day 1):
+#   - postgres  : stores cleaned FAERS reports, computed PRR/ROR signals,
+#                 and cross-validated signal pairs.
+#
+# Services commented out (Day 10 decision):
+#   - neo4j     : only add if you decide the drug–event graph benefits from
+#                 native graph traversal (Cypher) over in-memory PyG tensors.
+#                 PyG HeteroData is enough for training; Neo4j would only add
+#                 value for exploratory Cypher queries by analysts.
+#
+# Why named volumes for postgres data?
+#   - Bind mounts (./data:/var/lib/postgresql/data) break on Windows Docker
+#     Desktop due to file locking.  Named volumes are managed by Docker and
+#     don't have that problem.
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: polysignal_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       polysignal
+      POSTGRES_USER:     polysignal
+      POSTGRES_PASSWORD: polysignal_dev   # override with Docker secret in prod
+    ports:
+      - "5432:5432"                        # host:container
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./etl/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U polysignal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── PolySignal API (optional — uncomment to run the full stack locally) ─────
+  # api:
+  #   build: .
+  #   container_name: polysignal_api
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   environment:
+  #     DATABASE_URL: postgresql://polysignal:polysignal_dev@postgres:5432/polysignal
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - .:/app
+
+  # ── Neo4j (uncomment on Day 10 if graph DB is warranted) ───────────────────
+  # neo4j:
+  #   image: neo4j:5.20-community
+  #   container_name: polysignal_neo4j
+  #   restart: unless-stopped
+  #   environment:
+  #     NEO4J_AUTH: neo4j/polysignal_dev
+  #     NEO4J_PLUGINS: '["apoc"]'
+  #   ports:
+  #     - "7474:7474"   # browser UI
+  #     - "7687:7687"   # bolt protocol
+  #   volumes:
+  #     - neo4j_data:/data
+
+volumes:
+  postgres_data:
+  # neo4j_data:    # uncomment with the neo4j service
