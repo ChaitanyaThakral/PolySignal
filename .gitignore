@@ -16,12 +16,15 @@ env/
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Data — never commit raw FAERS zips or extracted CSVs
-/data/
-*.zip
-*.csv
-*.parquet
-*.feather
+# Data — never commit raw FAERS zips, CSVs, or processed Parquet
+/data/**/*.zip
+/data/**/*.csv
+/data/**/*.parquet
+/data/**/*.gz
+/data/**/*.feather
+/data/processed/faers_*.parquet/
+# But keep placeholder files so empty dirs are tracked
+!/data/**/.gitkeep
 
 # Secrets / credentials
 .env
