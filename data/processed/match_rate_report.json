@@ -1,0 +1,47 @@
+{
+  "faers": {
+    "total_unique_names": 4725,
+    "matched": 3910,
+    "unmapped": 815,
+    "match_rate_pct": 82.75,
+    "by_tier": {
+      "exact": 3204,
+      "unmapped": 815,
+      "first_word": 401,
+      "stripped": 189,
+      "fuzzy": 116
+    },
+    "sample_unmapped": [
+      "anti-thymocyte globulin (rabbit) nos",
+      "indacaterol",
+      "pegintron",
+      "human immunoglobulin g\\hyaluronidase recombinant human",
+      "dostinex",
+      "human c1-esterase inhibitor",
+      "rebetol",
+      ".alpha.1-proteinase inhibitor human",
+      "taxotere",
+      "sustiva",
+      "temodal",
+      "amoxicillin\\clavulanic acid",
+      "human immunoglobulin g",
+      "tavor (lorazepam)",
+      "prempro",
+      "protopic",
+      "glycopyrronium\\indacaterol",
+      "ethinyl estradiol\\levonorgestrel",
+      "vicks nyquil severe cold and flu",
+      "cobicistat\\elvitegravir\\emtricitabine\\tenofovir",
+      "kiovig",
+      "emtricitabine\\tenofovir",
+      "novorapid",
+      "enantone lp",
+      "leuplin",
+      "trikafta",
+      "detrusitol",
+      "lutetium oxodotreotide lu-177",
+      "levaquin",
+      "novantrone"
+    ]
+  }
+}
