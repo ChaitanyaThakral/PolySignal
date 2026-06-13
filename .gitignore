@@ -22,6 +22,9 @@ env/
 /data/**/*.parquet
 /data/**/*.gz
 /data/**/*.feather
+/data/**/*.xml
+/data/**/*.tab
+/data/**/*.tmp
 /data/processed/faers_*.parquet/
 # But keep placeholder files so empty dirs are tracked
 !/data/**/.gitkeep

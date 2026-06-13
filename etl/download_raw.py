@@ -89,13 +89,9 @@ FAERS_QUARTERS: list[tuple[str, str]] = [
 # RxNorm Prescribable Content — no UMLS license required (confirmed June 2026)
 RXNORM_URL = "https://download.nlm.nih.gov/rxnorm/RxNorm_full_prescribe_06012026.zip"
 
-# TWOSIDES via Tatonetti Lab OSF/Zenodo mirror
-# This is the drug-pair to side-effect CSV (~1.9 GB uncompressed).
-# If this URL 404s, check: https://github.com/tatonetti-lab/nsides-release
-TWOSIDES_URL = (
-    "https://zenodo.org/records/10975016/files/"
-    "TWOSIDES.csv.gz?download=1"
-)
+# TWOSIDES raw FAERS-linked version (with patient covariates for causal inference)
+# Discovered via Tatonetti Lab nsides-release v0.1 notes
+TWOSIDES_URL = "https://tatonettilab-resources.s3.amazonaws.com/nsides/TWOSIDES.csv.gz"
 
 # ── MANUAL STEPS (cannot be automated) ─────────────────────────────────────────
 MANUAL_STEPS = """

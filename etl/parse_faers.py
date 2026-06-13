@@ -266,7 +266,7 @@ def _deduplicate_by_caseid(df: pd.DataFrame) -> pd.DataFrame:
     )
     after = len(df)
     pct   = (before - after) / max(before, 1) * 100
-    log.info("DEMO dedup: %d → %d rows (%.1f%% dupes removed)", before, after, pct)
+    log.info("DEMO dedup: %d -> %d rows (%.1f%% dupes removed)", before, after, pct)
     return df
 
 
@@ -304,7 +304,7 @@ def _normalise_drug(df: pd.DataFrame) -> pd.DataFrame:
     n_before = len(df)
     df = df[df["role_cod"].astype(str).isin(PRIMARY_SUSPECT_ROLES)].copy()
     n_after  = len(df)
-    log.info("DRUG PS filter: %d → %d rows", n_before, n_after)
+    log.info("DRUG PS filter: %d -> %d rows", n_before, n_after)
 
     df["drugname_lower"] = df["drugname"].astype(str).str.lower().str.strip()
     df["prod_ai_lower"]  = (
@@ -353,17 +353,32 @@ def build_unified_dataframes(
             for z in zips
         ]
 
-        # Metadata for dd.from_delayed — Dask needs to know the schema
-        meta_cols = schema.keep_cols + ["quarter", "year"]
+        # Build meta matching ACTUAL dtypes the partition functions produce.
+        meta: Dict[str, str] = {}
+        for col, dtype in schema.dtypes.items():
+            if dtype == "Int64":
+                meta[col] = "Int64"
+            elif dtype == "Float64":
+                meta[col] = "Float64"
+            elif dtype == "category":
+                meta[col] = "object"   # categories become object in meta
+            else:
+                meta[col] = "object"
+        meta["quarter"] = "object"
+        meta["year"]    = "int64"
+        
         if table_name == "DEMO":
-            meta_cols += ["age_years", "weight_kg"]
+            meta["age_years"]  = "Float64"
+            meta["weight_kg"]  = "Float64"
         if table_name == "DRUG":
-            meta_cols += ["drugname_lower", "prod_ai_lower"]
+            meta["drugname_lower"] = "object"
+            meta["prod_ai_lower"]  = "object"
 
-        meta = {col: "object" for col in meta_cols}
-        meta["year"] = "int64"
-
-        ddf = dd.from_delayed(delayed_parts, meta=meta)
+        ddf = dd.from_delayed(
+            delayed_parts,
+            meta=meta,
+            verify_meta=False,   # skip strict schema check
+        )
 
         # Apply table-level post-processing lazily
         if table_name == "DEMO":
@@ -404,7 +419,7 @@ def persist_to_parquet(
             output_paths[table_name] = out_path
             continue
 
-        log.info("[%s] Writing partitioned Parquet → %s", table_name, out_path)
+        log.info("[%s] Writing partitioned Parquet -> %s", table_name, out_path)
         ddf.to_parquet(
             str(out_path),
             engine        = "pyarrow",
@@ -471,7 +486,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     # Summary
     log.info("=== ETL Complete ===")
     for table, path in output_paths.items():
-        log.info("  %s → %s", table, path)
+        log.info("  %s -> %s", table, path)
 
     log.info("Next: run `python etl/validate_counts.py` to verify row counts.")
 

@@ -306,15 +306,22 @@ def normalize_twosides(twosides_path: Path, rxcui_to_ingredient: Dict[str, str])
     log.info("Loading TWOSIDES sample (first 200k rows) ...")
     import gzip
     with gzip.open(twosides_path, "rb") as f:
-        ts = pd.read_csv(f, nrows=200_000, usecols=lambda c: "rxcui" in c.lower())
+        ts = pd.read_csv(f, nrows=200_000, usecols=lambda c: any(x in c.lower() for x in ["rxcui", "rxnorm", "rxnorn"]))
 
-    rxcui_cols = [c for c in ts.columns if "rxcui" in c.lower()]
+    rxcui_cols = [c for c in ts.columns if any(x in c.lower() for x in ["rxcui", "rxnorm", "rxnorn"])]
     log.info("TWOSIDES rxcui columns: %s", rxcui_cols)
 
+    if not rxcui_cols:
+        log.warning("No rxcui/rxnorm columns found in TWOSIDES!")
+        return pd.DataFrame(columns=["drug_rxcui", "ingredient_rxcui"])
+
     all_rxcuis = pd.unique(ts[rxcui_cols].values.ravel("K"))
-    all_rxcuis = [str(r) for r in all_rxcuis if pd.notna(r)]
+    all_rxcuis = [str(int(float(r))) if pd.notna(r) and str(r).replace('.','').isdigit() else str(r) for r in all_rxcuis if pd.notna(r)]
 
     mapping = {r: rxcui_to_ingredient.get(r, r) for r in all_rxcuis}
+
+    if not mapping:
+        return pd.DataFrame(columns=["drug_rxcui", "ingredient_rxcui"])
 
     result = pd.DataFrame([
         {"drug_rxcui": k, "ingredient_rxcui": v}
